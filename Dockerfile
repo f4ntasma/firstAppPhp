@@ -1,8 +1,9 @@
 FROM php:8.2-fpm
 
-# Install Caddy
+# Install Caddy and libcurl dev headers needed to build the PHP curl extension
 RUN apt-get update && apt-get install -y \
     curl \
+    libcurl4-openssl-dev \
     debian-keyring \
     debian-archive-keyring \
     apt-transport-https \
@@ -22,5 +23,5 @@ COPY public/ /app/public/
 
 EXPOSE 80
 
-# Start PHP-FPM and Caddy together
-CMD php-fpm -D && caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+# Start PHP-FPM as a background daemon, then run Caddy in the foreground
+CMD php-fpm --daemonize && caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
