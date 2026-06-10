@@ -14,9 +14,20 @@ $result = curl_exec($ch);
 // una alternativa es usar file_get_contents
 // $result = file_get_contents(API_URL); // si solo quieres hacer un GET de una API
 
-$data = json_decode($result, true); 
+if ($result === false) {
+    $curlError = curl_error($ch);
+    error_log("MCU API cURL error: " . $curlError);
+    curl_close($ch);
+    $loadError = "No se pudo conectar con la API. Por favor, inténtalo más tarde.";
+} else {
+    curl_close($ch);
+    $data = json_decode($result, true);
 
-curl_close($ch); 
+    if ($data === null) {
+        error_log("MCU API JSON decode error: " . json_last_error_msg() . " — raw response: " . $result);
+        $loadError = "La respuesta de la API no es válida. Por favor, inténtalo más tarde.";
+    }
+}
 ?>
 
 <head> 
@@ -29,6 +40,17 @@ curl_close($ch);
     href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
     >
 </head>
+
+<?php if (isset($loadError)): ?>
+
+<main>
+    <hgroup>
+        <h2>La próxima película de Marvel</h2>
+        <p>⚠️ <?= htmlspecialchars($loadError) ?></p>
+    </hgroup>
+</main>
+
+<?php else: ?>
 
 <main>
     <section>
@@ -45,6 +67,8 @@ curl_close($ch);
     </hgroup>
 
 </main>
+
+<?php endif; ?>
 
 <style>
     :root {
