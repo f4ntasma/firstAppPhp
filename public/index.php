@@ -14,9 +14,20 @@ $result = curl_exec($ch);
 // una alternativa es usar file_get_contents
 // $result = file_get_contents(API_URL); // si solo quieres hacer un GET de una API
 
-$data = json_decode($result, true); 
+$error = null;
 
-curl_close($ch); 
+if ($result === false) {
+    $error = "Error al conectar con la API: " . curl_error($ch);
+}
+
+curl_close($ch);
+
+if ($error === null) {
+    $data = json_decode($result, true);
+    if ($data === null) {
+        $error = "Error al procesar la respuesta de la API: JSON inválido.";
+    }
+}
 ?>
 
 <head> 
@@ -31,6 +42,12 @@ curl_close($ch);
 </head>
 
 <main>
+<?php if ($error !== null): ?>
+    <section>
+        <h2>La próxima película de Marvel</h2>
+        <p style="color: red;"><strong>No se pudieron cargar los datos.</strong> <?= htmlspecialchars($error) ?></p>
+    </section>
+<?php else: ?>
     <section>
         <h2>La próxima película de Marvel</h2>
         <img src="<?= $data["poster_url"]; ?>" width="300" alt="Poster de <?= $data["title"] ?>"     
@@ -43,6 +60,7 @@ curl_close($ch);
         <p>Fecha de estreno <?= $data["release_date"] ?></p>
         <p>La siguiente es: <?= $data["following_production"]["title"] ?></p>
     </hgroup>
+<?php endif; ?>
 
 </main>
 
